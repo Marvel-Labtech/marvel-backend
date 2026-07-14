@@ -13,8 +13,20 @@ const PORT = process.env.PORT || 8080;
 // ==========================================
 
 // Enable CORS securely for your local development environment
+const allowedOrigins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "https://marvel-labtech.github.io"
+];
+
 app.use(cors({
-    origin: 'http://127.0.0.1:5500',
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true
 }));
 
