@@ -4,29 +4,33 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const contactRouter = require('./routes/contact');
 
-// Initialize Express Engine Instance once
+// Initialize Express Engine Instance (Only ONCE!)
 const app = express();
 const PORT = process.env.PORT || 8080;
 
 // ==========================================
-// MIDDLEWARE CONFIGURATION MATRICES
+// MIDDLEWARE CONFIGURATION MATRICES (CORS)
 // ==========================================
 
-// Enable CORS securely for your local development environment
+// Define allowed origins including local development and your live GitHub Pages site
 const allowedOrigins = [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
+    "http://localhost:8080",
     "https://marvel-labtech.github.io"
 ];
 
 app.use(cors({
     origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl, or server-to-server)
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             callback(new Error("Not allowed by CORS"));
         }
     },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 
@@ -44,6 +48,16 @@ app.use('/api/v1', contactRouter);
 // Base sanity check node endpoint
 app.get('/', (req, res) => {
     res.status(200).json({ status: "ONLINE", system: "Marvel Tech Lab Cluster Engine" });
+});
+
+// Main System Health Ticker API Route
+app.get('/api/v1/health', (req, res) => {
+    const dbState = mongoose.connection.readyState === 1 ? "CONNECTED" : "DISCONNECTED";
+    res.status(200).json({ 
+        status: "ONLINE", 
+        database: dbState,
+        system: "Marvel Tech Lab Cluster Engine" 
+    });
 });
 
 // ==========================================
@@ -64,13 +78,3 @@ mongoose.connect(MONGO_URI)
         console.error('❌ [DATABASE REFUSED] Cluster handshake failed:', error.message);
         process.exit(1);
     });
-
-    // Add or verify this base sanity check endpoint in your server.js
-app.get('/api/v1/health', (req, res) => {
-    const dbState = mongoose.connection.readyState === 1 ? "CONNECTED" : "DISCONNECTED";
-    res.status(200).json({ 
-        status: "ONLINE", 
-        database: dbState,
-        system: "Marvel Tech Lab Cluster Engine" 
-    });
-});
