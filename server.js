@@ -12,7 +12,6 @@ const PORT = process.env.PORT || 8080;
 // MIDDLEWARE CONFIGURATION MATRICES (CORS)
 // ==========================================
 
-// Define allowed origins including local development and your live GitHub Pages site
 const allowedOrigins = [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
@@ -22,8 +21,8 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, curl, or server-to-server)
-        if (!origin || allowedOrigins.includes(origin)) {
+        // If there's no origin (like mobile apps, curl, or browser preflights) OR if the origin is in our allowed list
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
             callback(new Error("Not allowed by CORS"));
@@ -33,6 +32,9 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
+
+// Handle preflight OPTIONS requests explicitly across all routes
+app.options('*', cors());
 
 // Global parser interceptors for payloads
 app.use(express.json());
